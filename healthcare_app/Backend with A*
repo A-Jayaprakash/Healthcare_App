@@ -1,0 +1,279 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const { Heap } = require('heap-js');
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/healthcare', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+// Hospital Model
+const HospitalSchema = new mongoose.Schema({
+  name: String,
+  address: String,
+  location: {
+    type: { type: String, default: 'Point' },
+    coordinates: { type: [Number], index: '2dsphere' }
+  },
+  ambulancesAvailable: Number,
+  contact: String
+});
+
+const Hospital = mongoose.model('Hospital', HospitalSchema);
+
+// Ambulance Booking Model
+const AmbulanceBookingSchema = new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  hospitalId: mongoose.Schema.Types.ObjectId,
+  userLocation: {
+    type: { type: String, default: 'Point' },
+    coordinates: [Number]
+  },
+  distance: Number,
+  estimatedTime: Number,
+  status: { type: String, default: 'pending' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const AmbulanceBooking = mongoose.model('AmbulanceBooking', AmbulanceBookingSchema);
+
+// A* Algorithm Implementation for Path Finding
+class AStarPathfinder {
+  constructor(graph) {
+    this.graph = graph;
+  }
+
+  heuristic(a, b) {
+    // Haversine distance between two points (in km)
+    const R = 6371; // Earth radius in km
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLon = (b.lng - a.lng) * Math.PI / 180;
+    const lat1 = a.lat * Math.PI / 180;
+    const lat2 = b.lat * Math.PI / 180;
+
+    const aVal = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+    const cVal = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1-aVal));
+    return R * cVal;
+  }
+
+  findPath(start, end) {
+    const openSet = new Heap((a, b) => a.fScore - b.fScore);
+    const cameFrom = new Map();
+    const gScore = new Map();
+    const fScore = new Map();
+
+    // Initialize with start node
+    const startKey = `${start.lat},${start.lng}`;
+    gScore.set(startKey, 0);
+    fScore.set(startKey, this.heuristic(start, end));
+    openSet.push({ node: start, fScore: fScore.get(startKey) });
+
+    const visited = new Set();
+
+    while (!openSet.isEmpty()) {
+      const current = openSet.pop().node;
+      const currentKey = `${current.lat},${current.lng}`;
+
+      if (currentKey === `${end.lat},${end.lng}`) {
+        // Reconstruct path
+        return this.reconstructPath(cameFrom, current);
+      }
+
+      visited.add(currentKey);
+
+      const neighbors = this.getNeighbors(current);
+      for (const neighbor of neighbors) {
+        const neighborKey = `${neighbor.lat},${neighbor.lng}`;
+        if (visited.has(neighborKey)) continue;
+
+        // Distance between current and neighbor
+        const tentativeGScore = gScore.get(currentKey) + 
+          this.heuristic(current, neighbor);
+
+        if (!gScore.has(neighborKey) || tentativeGScore < gScore.get(neighborKey)) {
+          cameFrom.set(neighborKey, current);
+          gScore.set(neighborKey, tentativeGScore);
+          fScore.set(neighborKey, tentativeGScore + this.heuristic(neighbor, end));
+
+          if (!openSet.toArray().some(item => `${item.node.lat},${item.node.lng}` === neighborKey)) {
+            openSet.push({ node: neighbor, fScore: fScore.get(neighborKey) });
+          }
+        }
+      }
+    }
+
+    return null; // No path found
+  }
+
+  getNeighbors(node) {
+    // In a real implementation, this would return actual road-connected neighbors
+    // For simplicity, we'll return points in a grid around the current node
+    const gridSize = 0.01; // ~1km at equator
+    return [
+      { lat: node.lat + gridSize, lng: node.lng },
+      { lat: node.lat - gridSize, lng: node.lng },
+      { lat: node.lat, lng: node.lng + gridSize },
+      { lat: node.lat, lng: node.lng - gridSize },
+      { lat: node.lat + gridSize, lng: node.lng + gridSize },
+      { lat: node.lat - gridSize, lng: node.lng - gridSize }
+    ].filter(neighbor => this.graph.isValidPoint(neighbor));
+  }
+
+  reconstructPath(cameFrom, current) {
+    const path = [current];
+    let currentKey = `${current.lat},${current.lng}`;
+    
+    while (cameFrom.has(currentKey)) {
+      current = cameFrom.get(currentKey);
+      path.unshift(current);
+      currentKey = `${current.lat},${current.lng}`;
+    }
+    
+    return path;
+  }
+}
+
+// Simple graph implementation for demo purposes
+class Graph {
+  isValidPoint(point) {
+    // In a real app, this would check if the point is on a road
+    return true;
+  }
+}
+
+// API Endpoints
+
+// Get nearby hospitals
+app.get('/api/hospitals/nearby', async (req, res) => {
+  try {
+    const { latitude, longitude } = req.query;
+    
+    const hospitals = await Hospital.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          $maxDistance: 10000 // 10km radius
+        }
+      },
+      ambulancesAvailable: { $gt: 0 }
+    }).limit(10);
+
+    // Calculate distance for each hospital
+    const hospitalsWithDistance = hospitals.map(hospital => {
+      const distance = calculateDistance(
+        parseFloat(latitude),
+        parseFloat(longitude),
+        hospital.location.coordinates[1],
+        hospital.location.coordinates[0]
+      );
+      return {
+        ...hospital.toObject(),
+        distance
+      };
+    });
+
+    res.json(hospitalsWithDistance);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Calculate route between two points
+app.post('/api/route', async (req, res) => {
+  try {
+    const { start, end } = req.body;
+    
+    // In a real app, you would use a proper routing engine like OSRM or Google Maps
+    // For this demo, we'll use our A* implementation with a simple grid
+    const graph = new Graph();
+    const pathfinder = new AStarPathfinder(graph);
+    const path = pathfinder.findPath(start, end);
+    
+    if (!path) {
+      return res.status(400).json({ error: 'No path found' });
+    }
+    
+    // Calculate total distance
+    let totalDistance = 0;
+    for (let i = 1; i < path.length; i++) {
+      totalDistance += pathfinder.heuristic(path[i-1], path[i]);
+    }
+    
+    res.json({
+      path,
+      distance: totalDistance.toFixed(2)
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Book an ambulance
+app.post('/api/ambulance/book', async (req, res) => {
+  try {
+    const { userId, hospitalId, userLocation, distance, estimatedTime } = req.body;
+    
+    // Check if hospital has available ambulances
+    const hospital = await Hospital.findById(hospitalId);
+    if (!hospital || hospital.ambulancesAvailable <= 0) {
+      return res.status(400).json({ error: 'No ambulances available at this hospital' });
+    }
+    
+    // Create booking
+    const booking = new AmbulanceBooking({
+      userId,
+      hospitalId,
+      userLocation: {
+        type: 'Point',
+        coordinates: [userLocation.lng, userLocation.lat]
+      },
+      distance,
+      estimatedTime,
+      status: 'confirmed'
+    });
+    
+    await booking.save();
+    
+    // Decrement available ambulances
+    hospital.ambulancesAvailable -= 1;
+    await hospital.save();
+    
+    res.json(booking);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Helper function to calculate distance between two points (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in km
+}
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
