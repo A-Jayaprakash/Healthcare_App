@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ambulance Device</title>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      let map, marker;
+      let ambulancePos;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 0, lng: 0 },
+          zoom: 15,
+        });
+
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition(
+            (pos) => {
+              ambulancePos = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+              };
+              socket.emit("locationUpdate", {
+                type: "ambulance",
+                position: ambulancePos,
+              });
+
+              if (!marker) {
+                marker = new google.maps.Marker({
+                  map,
+                  label: "A",
+                  icon: "http://maps.google.com/mapfiles/ms/icons/ambulance.png",
+                });
+              }
+              marker.setPosition(ambulancePos);
+              map.setCenter(ambulancePos);
+            },
+            (err) => {
+              console.error("Geolocation error:", err.message);
+            },
+            {
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 10000,
+            }
+          );
+        }
+      }
+    </script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyY0lSnNKSw4ov-yaV4XPDnVKxGFoYyVU&callback=initMap"
+    ></script>
+  </body>
+</html>
