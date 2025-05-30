@@ -1,0 +1,491 @@
+html {
+    scroll-behavior: smooth;
+  }
+  
+
+/* Reset and Base Setup */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    background: #f8f9fa;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Header Styling */
+.header {
+    width: 100%;
+    background: #38b6ff;
+    color: white;
+    padding: 20px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.tagline {
+    font-size: 16px;
+    font-weight: 300;
+    margin-top: 5px;
+}
+
+/* Dashboard Main Layout */
+.dashboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 50px;
+}
+
+/* Feature Cards */
+.booking-box {
+    width: 180px;
+    height: 180px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+}
+
+.booking-box:hover {
+    transform: scale(1.05);
+    background: #e0f7fa;
+}
+
+.booking-box p {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+}
+
+/* Buttons */
+button {
+    padding: 10px 20px;
+    background: #38b6ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #32cd32;
+}
+
+/* Inputs */
+input[type="tel"],
+select {
+    width: 80%;
+    padding: 10px;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Map container */
+#map {
+    margin-top: 20px;
+    width: 90%;
+    height: 300px;
+    border-radius: 10px;
+}
+
+/* Hospital Selection Buttons */
+#hospitalList button {
+    background: #32cd32;
+    margin: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+
+#hospitalList button:hover {
+    background: #2ecc71;
+}
+
+/* Medicine List */
+#medicineList div {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media(max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+/* Floating Back Button */
+.back-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #38b6ff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s, transform 0.3s;
+}
+
+.back-button:hover {
+    background-color: #32cd32;
+    transform: scale(1.1);
+}
+/* Page Animation */
+body {
+    animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Zoom effect for cards */
+.booking-box {
+    animation: zoomIn 0.8s ease-in-out;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+/* Toast Notification */
+#toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    min-width: 200px;
+    background-color: #38b6ff;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    animation: slideIn 0.5s forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Product Cards */
+.product-card {
+    width: 200px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+/* Product Cards */
+.product-card {
+    width: 220px;
+    background: #ffffff;
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 15px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Product Image Styling */
+.product-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.4s ease;
+    margin-bottom: 10px;
+}
+
+/* Zoom Effect on Hover */
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+/* Quantity Input */
+.product-card input[type="number"] {
+    margin-top: 10px;
+    padding: 5px;
+    width: 60px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* Add to Cart Button */
+.product-card button {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background-color: #38b6ff;
+    color: white;
+    padding: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.product-card button:hover {
+    background-color: #32cd32;
+}
+
+/* Floating View Cart Button */
+.floating-cart-button {
+    position: fixed;
+    bottom: 80px;
+    right: 30px;
+    background-color: #38b6ff;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: background-color 0.3s, transform 0.3s;
+    z-index: 999;
+}
+
+.floating-cart-button:hover {
+    background-color: #32cd32;
+    transform: scale(1.1);
+}
+
+/* Cart Badge Styling */
+.cart-badge {
+    background: red;
+    color: white;
+    font-size: 14px;
+    padding: 3px 8px;
+    border-radius: 50%;
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    display: inline-block;
+}
+
+/* Bounce Animation for Cart Badge */
+@keyframes bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.4); }
+    50% { transform: scale(0.9); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.bounce {
+    animation: bounce 0.6s;
+}
+
+.product-card {
+  width: 220px;
+  background: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+  margin: 15px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 180px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+.product-price {
+  font-size: 14px;
+  color: #333;
+}
+
+.quantity-input {
+  width: 50px;
+  margin: 10px 0;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #38b6ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #32cd32;
+}
+
+.product-card {
+  width: 220px;
+  background: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+  margin: 15px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 180px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+.product-price {
+  font-size: 14px;
+  color: #333;
+}
+
+.quantity-input {
+  width: 50px;
+  margin: 10px 0;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #38b6ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #32cd32;
+}

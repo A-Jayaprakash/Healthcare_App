@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedConnect - Medicine & Health Supplies Ordering</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="header">
+    <h1 class="logo">MedConnect</h1>
+    <h3 class="tagline">Your one-stop solution for perfect health</h3>
+  </div>
+
+  <div class="dashboard-container">
+    <h2>Choose Category</h2>
+    <button onclick="showMedicines()">Order Medicines</button>
+    <button onclick="showSupplies()">Order Health Supplies</button>
+
+    <!-- Product List (Medicines or Supplies) -->
+    <div id="productList" style="margin-top: 20px;"></div>
+
+    <!-- Cart Section (Initially Hidden) -->
+    <div id="cartSection" style="margin-top: 30px; display:none;">
+      <h3>Cart Summary</h3>
+      <div id="cartItems"></div>
+      <h3 id="totalAmount"></h3>
+
+      <h3 style="margin-top:20px;">Choose Payment Method</h3>
+      <select id="paymentMode">
+        <option value="UPI">UPI</option>
+        <option value="Card">Card</option>
+        <option value="Cash on Delivery">Cash on Delivery</option>
+      </select>
+
+      <button onclick="confirmOrder()" style="margin-top:20px;">Confirm Order</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <a href="dashboard.html" class="back-button">← Dashboard</a>
+
+<div id="productList"></div>
+  <script src="medicine.js"></script>
+</body>
+</html>
